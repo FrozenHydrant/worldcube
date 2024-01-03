@@ -30,6 +30,7 @@ class MainClass:
             pygame.display.flip()
         
             self.clock.tick(60)
+            print(self.clock.get_fps())
             #print(str(self.rendering.count) + " " + str(self.world.count))
         pygame.quit()
 

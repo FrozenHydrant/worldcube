@@ -4,6 +4,7 @@ class World:
     def __init__(self):
         self.chunks = {}
         self.count = 0
+        self.WATER_LEVEL = 35
 
     def _generate_chunk(self, x, y):
         chunk = {}
