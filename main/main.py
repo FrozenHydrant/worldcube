@@ -19,18 +19,20 @@ class MainClass:
         self.rendering = Rendering(screen, self.world)
 
     def begin_loop(self):
+        self.screen.fill("white")
+        self.rendering.draw(self.x, self.y)
+        pygame.display.flip()
+        
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
 
             #Rendering
-            self.screen.fill("white")
-            self.rendering.draw(self.x, self.y)
             pygame.display.flip()
         
             self.clock.tick(60)
-            print(self.clock.get_fps())
+            #print(self.clock.get_fps())
             #print(str(self.rendering.count) + " " + str(self.world.count))
         pygame.quit()
 
