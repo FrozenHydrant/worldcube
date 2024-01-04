@@ -2,15 +2,19 @@ import random
 
 class World:
     def __init__(self):
+        self.chunk_images = {}
         self.chunks = {}
         self.count = 0
+
+        # Generation settings
+        self.CHUNK_SIZE = 32
         self.WATER_LEVEL = 35
 
     def _generate_chunk(self, x, y):
         chunk = {}
         # To generate a world...
-        for i in range(16):
-            for j in range(16):
+        for i in range(self.CHUNK_SIZE):
+            for j in range(self.CHUNK_SIZE):
                 chunk[(i,j)] = random.random()
         self.chunks[(x,y)] = chunk
         self.count += 1

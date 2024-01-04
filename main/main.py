@@ -19,8 +19,7 @@ class MainClass:
         self.rendering = Rendering(screen, self.world)
 
     def begin_loop(self):
-        self.screen.fill("white")
-        self.rendering.draw(self.x, self.y)
+
         pygame.display.flip()
         
         while self.running:
@@ -29,11 +28,13 @@ class MainClass:
                     self.running = False
 
             #Rendering
+            self.screen.fill("white")
+            self.rendering.draw(self.x, self.y)
             pygame.display.flip()
         
             self.clock.tick(60)
-            #print(self.clock.get_fps())
-            #print(str(self.rendering.count) + " " + str(self.world.count))
+            print(self.clock.get_fps())
+            print(str(self.rendering.count) + " " + str(self.world.count) + " \n " + str(len(self.world.chunk_images)))
         pygame.quit()
 
 def main():
