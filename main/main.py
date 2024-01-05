@@ -3,6 +3,7 @@ import pygame
 from world import *
 from rendering import *
 
+
 # pygame setup
 pygame.init()
 

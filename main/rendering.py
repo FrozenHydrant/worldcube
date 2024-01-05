@@ -3,6 +3,7 @@ import math
 import concurrent.futures
 #import multiprocessing
 import time
+import random
 
 class Rendering:
     def __init__(self, screen, world):
@@ -19,7 +20,7 @@ class Rendering:
         self.TILE_SIZE = 4
         self.PIXEL_SIZE = self.TILE_SIZE/math.sqrt(2)
         self.HALF_CHUNK_PIXEL_SIZE = world.CHUNK_SIZE*self.PIXEL_SIZE
-        self.TILE_HEIGHT = 200
+        self.TILE_HEIGHT = 300
 
         self.count = 0
         self.y_size = math.ceil((screen.get_width() * math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) + 1
@@ -104,18 +105,26 @@ class Rendering:
             if height*self.TILE_HEIGHT < self.world.WATER_LEVEL:
                 pygame.draw.rect(new_surface, self.OCEAN, (draw_x, math.floor(draw_y + height*self.TILE_HEIGHT - self.world.WATER_LEVEL), self.TILE_SIZE, math.ceil(self.world.WATER_LEVEL - height*self.TILE_HEIGHT)))
                 return
-            grass, dirt, stone = draw_y, draw_y + 6, draw_y + 21
-            grass_height, dirt_height, stone_height = math.floor(min(height*self.TILE_HEIGHT, 6)), math.floor(min(height*self.TILE_HEIGHT-6, 15)), height*self.TILE_HEIGHT-21
-            new_surface.fill(self.GRASS, (draw_x, grass, self.TILE_SIZE, grass_height))
-            h = 0
-            while h < grass_height:
-                new_surface.fill(self._color_lerp(self.GRASS, self.DIRT, h/grass_height), (draw_x, grass+h, self.TILE_SIZE, 1))
-                h += 1
-            h = 0
-            while h < dirt_height:
-                new_surface.fill(self._color_lerp(self.DIRT, self.STONE, h/dirt_height), (draw_x, dirt+h, self.TILE_SIZE, 3))
-                h += 3
-            new_surface.fill(self.STONE, (draw_x, stone, self.TILE_SIZE, stone_height))
+            if height < 4/5:
+                grass, dirt, stone = draw_y, draw_y + 12, draw_y + 26
+                grass_height, dirt_height, stone_height = math.floor(min(height*self.TILE_HEIGHT, 12)), math.floor(min(height*self.TILE_HEIGHT-12, 15)), height*self.TILE_HEIGHT-26
+                new_surface.fill(self.GRASS, (draw_x, grass, self.TILE_SIZE, grass_height))
+                h = 0
+                while h < grass_height:
+                    new_surface.fill(self._color_lerp(self.GRASS, self.DIRT, h/grass_height), (draw_x, grass+h, self.TILE_SIZE, 1))
+                    h += 1
+                h = 0
+                while h < dirt_height:
+                    new_surface.fill(self._color_lerp(self.DIRT, self.STONE, h/dirt_height), (draw_x, dirt+h, self.TILE_SIZE, 3))
+                    h += 3
+                new_surface.fill(self.STONE, (draw_x, stone, self.TILE_SIZE, stone_height))
+            else:
+                snow_height = min(height*self.TILE_HEIGHT-self.TILE_HEIGHT*(5/6), 9)
+                h = 0
+                while h < snow_height:
+                    new_surface.fill(self._color_lerp((255,255,255), self.STONE, h/snow_height), (draw_x, draw_y+h, self.TILE_SIZE, 3))
+                    h += 3
+                new_surface.fill(self.STONE, (draw_x, draw_y+snow_height, self.TILE_SIZE, height*self.TILE_HEIGHT-snow_height))
 
     def _color_lerp(self, tuple_one, tuple_two, percentage):
         return (tuple_one[0] * (1-percentage) + tuple_two[0] * percentage, tuple_one[1] * (1-percentage) + tuple_two[1] * percentage, tuple_one[2] * (1-percentage) + tuple_two[2] * percentage)
