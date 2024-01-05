@@ -26,11 +26,13 @@ class MainClass:
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.rendering.THREAD_POOL.shutdown(wait=False)
                     self.running = False
 
             #Rendering
             self.screen.fill("white")
             self.rendering.draw(self.x, self.y)
+            #self.rendering.THREAD_POOL.shutdown(wait=False)
 
             label = self.font.render(f"{self.clock.get_fps()}", 1, (0,0,0))
             self.screen.blit(label, (100,100))
@@ -41,8 +43,8 @@ class MainClass:
             #print(self.clock.get_fps())
             #print(str(self.rendering.count) + " " + str(self.world.count) + " \n " + str(len(self.world.chunk_images)))
 
-            self.x -= 6
-            self.y -= 6
+            self.x -= 1
+            self.y -= 1.5
         pygame.quit()
 
 def main():

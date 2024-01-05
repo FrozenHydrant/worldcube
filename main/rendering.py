@@ -1,6 +1,6 @@
 import pygame
 import math
-import threading
+import concurrent.futures
 #import multiprocessing
 import time
 
@@ -20,13 +20,16 @@ class Rendering:
         self.PIXEL_SIZE = self.TILE_SIZE/math.sqrt(2)
         self.HALF_CHUNK_PIXEL_SIZE = world.CHUNK_SIZE*self.PIXEL_SIZE
         self.TILE_HEIGHT = 200
-        
+
         self.count = 0
         self.y_size = math.ceil((screen.get_width() * math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) + 1
         self.x_size_min = -math.ceil((screen.get_width() / math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) - 1
         self.x_size_max = math.ceil((screen.get_height() / math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) + 1
         self.screen = screen
         self.world = world
+
+        self.THREAD_POOL = concurrent.futures.ThreadPoolExecutor()
+
 
     def draw(self, x, y):
         self.count = 0
@@ -46,9 +49,10 @@ class Rendering:
                     #with multiprocessing.Pool() as pool:
                         #pool.map(self._create_image, [(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y)])
                         #pool.map(self.test, [2,3,4])
-
-                    new_chunk_thread = threading.Thread(target=self._create_image, args=(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y))
-                    new_chunk_thread.start()
+                    #self._create_image(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y)
+                    self.THREAD_POOL.submit(self._create_image, draw_chunk_x, draw_chunk_y, chunk_x, chunk_y)
+                    #new_chunk_thread = threading.Thread(target=self._create_image, args=(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y))
+                    #new_chunk_thread.start()
                     #self._create_image(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y)
 
                 delta_chunk_x = draw_chunk_x - chunk_x
@@ -75,16 +79,17 @@ class Rendering:
         return
     
     def _create_image(self, draw_chunk_x, draw_chunk_y, chunk_x, chunk_y):
+            #print("pluh")
             #while True:
             #    print("No")
-            time.sleep(1)
+            #time.sleep(1)
             new_surface = pygame.Surface((math.floor(self.HALF_CHUNK_PIXEL_SIZE*2), math.floor(self.HALF_CHUNK_PIXEL_SIZE*2) + self.TILE_HEIGHT), pygame.SRCALPHA)
             column_x = self.HALF_CHUNK_PIXEL_SIZE
             column_y = self.TILE_HEIGHT
             chunk = self.world.query(draw_chunk_x, draw_chunk_y)
             for i in range(self.CHUNK_SIZE):
                 for j in range(self.CHUNK_SIZE):
-                    pass
+                    time.sleep(1/(self.CHUNK_SIZE*self.CHUNK_SIZE*1500))
                     height = chunk[(i, j)]
                     self._draw_column(column_x, column_y, i, j, height, new_surface)
 
