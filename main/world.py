@@ -12,10 +12,11 @@ class World:
 
     def _generate_chunk(self, x, y):
         chunk = {}
+        temp = random.random()
         # To generate a world...
         for i in range(self.CHUNK_SIZE):
             for j in range(self.CHUNK_SIZE):
-                chunk[(i,j)] = random.random()
+                chunk[(i,j)] = temp
         self.chunks[(x,y)] = chunk
         self.count += 1
 

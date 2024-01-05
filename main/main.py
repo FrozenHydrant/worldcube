@@ -11,7 +11,7 @@ MAIN_SCREEN = pygame.display.set_mode()
 class MainClass:
     def __init__(self, screen):
         self.running = True
-        self.x = 0
+        self.x = 50
         self.y = 0
         self.screen = screen
         self.clock = pygame.time.Clock()
@@ -35,6 +35,9 @@ class MainClass:
             self.clock.tick(60)
             print(self.clock.get_fps())
             print(str(self.rendering.count) + " " + str(self.world.count) + " \n " + str(len(self.world.chunk_images)))
+
+            self.x -= 3
+            self.y -= 3
         pygame.quit()
 
 def main():

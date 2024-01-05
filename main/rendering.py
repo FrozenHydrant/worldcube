@@ -18,18 +18,19 @@ class Rendering:
         self.HALF_CHUNK_PIXEL_SIZE = world.CHUNK_SIZE*self.PIXEL_SIZE
         
         self.count = 0
-        self.y_size = math.ceil((screen.get_width() * math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE))
-        self.x_size_min = -math.ceil((screen.get_width() / math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE))
-        self.x_size_max = math.ceil((screen.get_height() / math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE))
+        self.y_size = math.ceil((screen.get_width() * math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) + 1
+        self.x_size_min = -math.ceil((screen.get_width() / math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) - 1
+        self.x_size_max = math.ceil((screen.get_height() / math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) + 1
         self.screen = screen
         self.world = world
 
     def draw(self, x, y):
         self.count = 0
 
-        chunk_x = math.floor(x / self.CHUNK_SIZE)
-        chunk_y = math.floor(y / self.CHUNK_SIZE)
-        
+        #chunk_x = math.floor(y / self.HALF_CHUNK_PIXEL_SIZE)
+        #chunk_y = int(x / self.HALF_CHUNK_PIXEL_SIZE)
+        chunk_x, chunk_y = self._convert_coords((x,y))
+
         for a in range(0, self.y_size):
             #a = 3
             draw_chunk_y = chunk_y + a
@@ -42,10 +43,18 @@ class Rendering:
                 delta_chunk_x = draw_chunk_x - chunk_x
                 delta_chunk_y = draw_chunk_y - chunk_y
             
-                start_x = (-delta_chunk_x + delta_chunk_y) * (self.HALF_CHUNK_PIXEL_SIZE) - x % (self.CHUNK_SIZE*self.TILE_SIZE)
-                start_y = (delta_chunk_x + delta_chunk_y) * (self.HALF_CHUNK_PIXEL_SIZE) - y % (self.CHUNK_SIZE*self.TILE_SIZE)
+                start_x = (-delta_chunk_x + delta_chunk_y) * (self.HALF_CHUNK_PIXEL_SIZE) - (x - (-chunk_x+chunk_y)*self.HALF_CHUNK_PIXEL_SIZE)
+                start_y = (delta_chunk_x + delta_chunk_y) * (self.HALF_CHUNK_PIXEL_SIZE) - (y - (chunk_x+chunk_y)*self.HALF_CHUNK_PIXEL_SIZE)
                     
                 self.screen.blit(self.world.chunk_images[(draw_chunk_x, draw_chunk_y)], (start_x - self.HALF_CHUNK_PIXEL_SIZE, start_y - 100))
+
+        # pick a font you have and set its size
+        myfont = pygame.font.SysFont("Comic Sans MS", 30)
+        # apply it to text on a label
+        label = myfont.render(f"{(chunk_x, chunk_y)} {(x, y)} {(chunk_x*self.HALF_CHUNK_PIXEL_SIZE*2, chunk_y*self.HALF_CHUNK_PIXEL_SIZE*2)}", 1, (0,0,0))
+        # put the label object on the screen at point x=100, y=100
+        self.screen.blit(label, (100, 100))
+
                 
     def _create_image(self, draw_chunk_x, draw_chunk_y, chunk_x, chunk_y):
             new_surface = pygame.Surface((math.floor(self.HALF_CHUNK_PIXEL_SIZE*2), math.floor(self.HALF_CHUNK_PIXEL_SIZE*2) + 100), pygame.SRCALPHA)
@@ -81,3 +90,16 @@ class Rendering:
 
     def _color_lerp(self, tuple_one, tuple_two, percentage):
         return (tuple_one[0] * (1-percentage) + tuple_two[0] * percentage, tuple_one[1] * (1-percentage) + tuple_two[1] * percentage, tuple_one[2] * (1-percentage) + tuple_two[2] * percentage)
+
+    def _convert_coords(self, coords):
+        x, y = coords[0], coords[1]
+
+        # Rotate
+        new_x = -0.5*x + 0.5*y
+        new_y = 0.5*x + 0.5*y
+
+        # Scale down
+        new_x = math.floor(new_x / self.HALF_CHUNK_PIXEL_SIZE)
+        new_y = math.floor(new_y / self.HALF_CHUNK_PIXEL_SIZE)
+
+        return (new_x, new_y)
