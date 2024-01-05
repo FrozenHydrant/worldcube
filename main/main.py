@@ -28,23 +28,30 @@ class MainClass:
                 if event.type == pygame.QUIT:
                     self.rendering.THREAD_POOL.shutdown(wait=False)
                     self.running = False
+                    break
 
             #Rendering
             self.screen.fill("white")
             self.rendering.draw(self.x, self.y)
-            #self.rendering.THREAD_POOL.shutdown(wait=False)
 
             label = self.font.render(f"{self.clock.get_fps()}", 1, (0,0,0))
             self.screen.blit(label, (100,100))
             
             pygame.display.flip()
-        
+            # Speed Change
+            #if (self.clock.get_fps() > 59):
+            #    self.rendering.draw_delay /= 1.01
+            #else:
+            #    self.rendering.draw_delay *= 1.01
+            #self.rendering.draw_delay = max(min(self.rendering.draw_delay, 1), 0)
+
             self.clock.tick(60)
             #print(self.clock.get_fps())
             #print(str(self.rendering.count) + " " + str(self.world.count) + " \n " + str(len(self.world.chunk_images)))
 
-            self.x -= 1
-            self.y -= 1.5
+            # Movement
+            self.x -= 0.5
+            self.y -= 0.5
         pygame.quit()
 
 def main():

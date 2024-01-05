@@ -10,7 +10,7 @@ class Rendering:
         self.STONE = (60, 60, 60)
         self.DIRT = (128, 42, 0)
         self.GRASS = (0, 179, 60)
-        self.OCEAN = (77, 166, 255, 100)
+        self.OCEAN = (77, 166, 255, 255)
 
         #Don't touch
         self.CHUNK_SIZE = world.CHUNK_SIZE
@@ -27,6 +27,7 @@ class Rendering:
         self.x_size_max = math.ceil((screen.get_height() / math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) + 1
         self.screen = screen
         self.world = world
+        self.draw_delay = 1/1500
 
         self.THREAD_POOL = concurrent.futures.ThreadPoolExecutor()
 
@@ -89,7 +90,7 @@ class Rendering:
             chunk = self.world.query(draw_chunk_x, draw_chunk_y)
             for i in range(self.CHUNK_SIZE):
                 for j in range(self.CHUNK_SIZE):
-                    time.sleep(1/(self.CHUNK_SIZE*self.CHUNK_SIZE*1500))
+                    time.sleep(self.draw_delay/(self.CHUNK_SIZE*self.CHUNK_SIZE))
                     height = chunk[(i, j)]
                     self._draw_column(column_x, column_y, i, j, height, new_surface)
 
@@ -102,6 +103,7 @@ class Rendering:
             self.count += 1
             if height*self.TILE_HEIGHT < self.world.WATER_LEVEL:
                 pygame.draw.rect(new_surface, self.OCEAN, (draw_x, math.floor(draw_y + height*self.TILE_HEIGHT - self.world.WATER_LEVEL), self.TILE_SIZE, math.ceil(self.world.WATER_LEVEL - height*self.TILE_HEIGHT)))
+                return
             grass, dirt, stone = draw_y, draw_y + 6, draw_y + 21
             grass_height, dirt_height, stone_height = math.floor(min(height*self.TILE_HEIGHT, 6)), math.floor(min(height*self.TILE_HEIGHT-6, 15)), height*self.TILE_HEIGHT-21
             new_surface.fill(self.GRASS, (draw_x, grass, self.TILE_SIZE, grass_height))

@@ -10,6 +10,7 @@ class World:
         # Generation settings
         self.CHUNK_SIZE = 33
         self.WATER_LEVEL = 70
+        self.VARIABILITY = 0.05
 
     def _generate_chunk(self, x, y):
         chunk = {}
@@ -32,7 +33,7 @@ class World:
                 if strength != self.CHUNK_SIZE-1:
                     chunk[(point_x, point_y)] = self._get_height(point_x, point_y, strength, chunk)
                 else:
-                    chunk[(point_x, point_y)] = random.random()
+                    chunk[(point_x, point_y)] = self._get_neighbouring_height(x, y, point_x, point_y)
                 strength = int(strength/2)
                 points.append((max(point_x - strength, 0), max(point_y - strength, 0), strength))
                 points.append((max(point_x - strength, 0), min(point_y + strength, self.CHUNK_SIZE-1), strength))
@@ -63,4 +64,25 @@ class World:
                 amount_accumulated += 1
         
         average = accumulation / amount_accumulated
-        return average
+        extra_salt = 1 + (1-2*random.random()) * self.VARIABILITY
+        return average*extra_salt
+
+    def _get_neighbouring_height(self, chunk_x, chunk_y, point_x, point_y):
+        cases = {(0, 0): [(0, -1, 0, self.CHUNK_SIZE-1), (-1, -1, self.CHUNK_SIZE-1, self.CHUNK_SIZE-1), (-1, 0, self.CHUNK_SIZE-1, 0)], (0, self.CHUNK_SIZE-1): [(-1, 0, self.CHUNK_SIZE-1, self.CHUNK_SIZE-1), (-1, 1, self.CHUNK_SIZE-1, 0), (0, 1, 0, 0)], (self.CHUNK_SIZE-1, self.CHUNK_SIZE-1): [(0, 1, self.CHUNK_SIZE-1, 0), (1, 1, 0, 0), (1, 0, 0, self.CHUNK_SIZE-1)], (self.CHUNK_SIZE-1, 0): [(0, -1, self.CHUNK_SIZE-1, self.CHUNK_SIZE-1), (1, -1, 0, self.CHUNK_SIZE-1), (1, 0, 0, 0)]}
+
+        accumulation = 0
+        amount_accumulated = 0
+        for point_set in cases[(point_x, point_y)]:
+            temp_chunk_x = chunk_x + point_set[0]
+            temp_chunk_y = chunk_y + point_set[1]
+            if (temp_chunk_x, temp_chunk_y) in self.chunks:
+                chunk = self.chunks[temp_chunk_x, temp_chunk_y]
+                accumulation += chunk[(point_set[2], point_set[3])]
+                amount_accumulated += 1
+
+        if amount_accumulated == 0:
+            return random.random()
+        average = accumulation / amount_accumulated
+        extra_salt = 1 + (1-2*random.random()) * self.VARIABILITY
+        return average*extra_salt
+            
