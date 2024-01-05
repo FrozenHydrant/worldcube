@@ -1,5 +1,8 @@
 import pygame
 import math
+import threading
+#import multiprocessing
+import time
 
 class Rendering:
     def __init__(self, screen, world):
@@ -16,6 +19,7 @@ class Rendering:
         self.TILE_SIZE = 4
         self.PIXEL_SIZE = self.TILE_SIZE/math.sqrt(2)
         self.HALF_CHUNK_PIXEL_SIZE = world.CHUNK_SIZE*self.PIXEL_SIZE
+        self.TILE_HEIGHT = 200
         
         self.count = 0
         self.y_size = math.ceil((screen.get_width() * math.sqrt(2)) / (self.CHUNK_SIZE*self.TILE_SIZE)) + 1
@@ -37,8 +41,15 @@ class Rendering:
             for b in range(self.x_size_min, self.x_size_max):
                 #b = 2
                 draw_chunk_x = chunk_x + b
-                if (draw_chunk_x, draw_chunk_y) not in self.world.chunk_images.keys():
-                    self.world.chunk_images[(draw_chunk_x, draw_chunk_y)] = self._create_image(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y)
+                if (draw_chunk_x, draw_chunk_y) not in self.world.chunk_images:
+                    self.world.chunk_images[(draw_chunk_x, draw_chunk_y)] = pygame.Surface((0, 0))
+                    #with multiprocessing.Pool() as pool:
+                        #pool.map(self._create_image, [(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y)])
+                        #pool.map(self.test, [2,3,4])
+
+                    new_chunk_thread = threading.Thread(target=self._create_image, args=(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y))
+                    new_chunk_thread.start()
+                    #self._create_image(draw_chunk_x, draw_chunk_y, chunk_x, chunk_y)
 
                 delta_chunk_x = draw_chunk_x - chunk_x
                 delta_chunk_y = draw_chunk_y - chunk_y
@@ -46,37 +57,48 @@ class Rendering:
                 start_x = (-delta_chunk_x + delta_chunk_y) * (self.HALF_CHUNK_PIXEL_SIZE) - (x - (-chunk_x+chunk_y)*self.HALF_CHUNK_PIXEL_SIZE)
                 start_y = (delta_chunk_x + delta_chunk_y) * (self.HALF_CHUNK_PIXEL_SIZE) - (y - (chunk_x+chunk_y)*self.HALF_CHUNK_PIXEL_SIZE)
                     
-                self.screen.blit(self.world.chunk_images[(draw_chunk_x, draw_chunk_y)], (start_x - self.HALF_CHUNK_PIXEL_SIZE, start_y - 100))
+                self.screen.blit(self.world.chunk_images[(draw_chunk_x, draw_chunk_y)], (start_x - self.HALF_CHUNK_PIXEL_SIZE, start_y - self.TILE_HEIGHT))
 
         # pick a font you have and set its size
-        myfont = pygame.font.SysFont("Comic Sans MS", 30)
+        #myfont = pygame.font.SysFont("Comic Sans MS", 30)
         # apply it to text on a label
-        label = myfont.render(f"{(chunk_x, chunk_y)} {(x, y)} {(chunk_x*self.HALF_CHUNK_PIXEL_SIZE*2, chunk_y*self.HALF_CHUNK_PIXEL_SIZE*2)}", 1, (0,0,0))
+        #label = myfont.render(f"{(chunk_x, chunk_y)} {(x, y)} {(chunk_x*self.HALF_CHUNK_PIXEL_SIZE*2, chunk_y*self.HALF_CHUNK_PIXEL_SIZE*2)}", 1, (0,0,0))
         # put the label object on the screen at point x=100, y=100
-        self.screen.blit(label, (100, 100))
-
-                
+        
+        #self.screen.blit(label, (100, 100))
+        
+    #def _test(self, draw_chunk_x, draw_chunk_y, chunk_x, chunk_y):
+    #    while True:
+    #        print("No")
+    #    print(f"This thread {(draw_chunk_x, draw_chunk_y)} has finished.")
+    def test(b):
+        return
+    
     def _create_image(self, draw_chunk_x, draw_chunk_y, chunk_x, chunk_y):
-            new_surface = pygame.Surface((math.floor(self.HALF_CHUNK_PIXEL_SIZE*2), math.floor(self.HALF_CHUNK_PIXEL_SIZE*2) + 100), pygame.SRCALPHA)
+            #while True:
+            #    print("No")
+            time.sleep(1)
+            new_surface = pygame.Surface((math.floor(self.HALF_CHUNK_PIXEL_SIZE*2), math.floor(self.HALF_CHUNK_PIXEL_SIZE*2) + self.TILE_HEIGHT), pygame.SRCALPHA)
             column_x = self.HALF_CHUNK_PIXEL_SIZE
-            column_y = 100
+            column_y = self.TILE_HEIGHT
             chunk = self.world.query(draw_chunk_x, draw_chunk_y)
             for i in range(self.CHUNK_SIZE):
                 for j in range(self.CHUNK_SIZE):
+                    pass
                     height = chunk[(i, j)]
                     self._draw_column(column_x, column_y, i, j, height, new_surface)
 
-            return new_surface
+            self.world.chunk_images[(draw_chunk_x, draw_chunk_y)] = new_surface
         
     def _draw_column(self, x, y, i, j, height, new_surface):
         draw_x = x + (-i + j) * (self.PIXEL_SIZE)
-        draw_y = y + (i + j) * (self.PIXEL_SIZE) - height*100
+        draw_y = y + (i + j) * (self.PIXEL_SIZE) - height*self.TILE_HEIGHT
         if not (draw_x < 0 or draw_x > self.screen.get_width() or draw_y < -self.TILE_SIZE*self.CHUNK_SIZE or draw_y - height > self.screen.get_height()): 
             self.count += 1
-            if height*100 < self.world.WATER_LEVEL:
-                pygame.draw.rect(new_surface, self.OCEAN, (draw_x, math.floor(draw_y + height*100 - self.world.WATER_LEVEL), self.TILE_SIZE, math.ceil(self.world.WATER_LEVEL - height*100)))
+            if height*self.TILE_HEIGHT < self.world.WATER_LEVEL:
+                pygame.draw.rect(new_surface, self.OCEAN, (draw_x, math.floor(draw_y + height*self.TILE_HEIGHT - self.world.WATER_LEVEL), self.TILE_SIZE, math.ceil(self.world.WATER_LEVEL - height*self.TILE_HEIGHT)))
             grass, dirt, stone = draw_y, draw_y + 6, draw_y + 21
-            grass_height, dirt_height, stone_height = math.floor(min(height*100, 6)), math.floor(min(height*100-6, 15)), height*100-21
+            grass_height, dirt_height, stone_height = math.floor(min(height*self.TILE_HEIGHT, 6)), math.floor(min(height*self.TILE_HEIGHT-6, 15)), height*self.TILE_HEIGHT-21
             new_surface.fill(self.GRASS, (draw_x, grass, self.TILE_SIZE, grass_height))
             h = 0
             while h < grass_height:

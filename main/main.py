@@ -17,6 +17,7 @@ class MainClass:
         self.clock = pygame.time.Clock()
         self.world = World()
         self.rendering = Rendering(screen, self.world)
+        self.font = pygame.font.SysFont("Comic Sans MS", 30)
 
     def begin_loop(self):
 
@@ -30,14 +31,18 @@ class MainClass:
             #Rendering
             self.screen.fill("white")
             self.rendering.draw(self.x, self.y)
+
+            label = self.font.render(f"{self.clock.get_fps()}", 1, (0,0,0))
+            self.screen.blit(label, (100,100))
+            
             pygame.display.flip()
         
             self.clock.tick(60)
-            print(self.clock.get_fps())
-            print(str(self.rendering.count) + " " + str(self.world.count) + " \n " + str(len(self.world.chunk_images)))
+            #print(self.clock.get_fps())
+            #print(str(self.rendering.count) + " " + str(self.world.count) + " \n " + str(len(self.world.chunk_images)))
 
-            self.x -= 3
-            self.y -= 3
+            self.x -= 6
+            self.y -= 6
         pygame.quit()
 
 def main():

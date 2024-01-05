@@ -1,4 +1,5 @@
 import random
+import collections
 
 class World:
     def __init__(self):
@@ -7,21 +8,59 @@ class World:
         self.count = 0
 
         # Generation settings
-        self.CHUNK_SIZE = 32
-        self.WATER_LEVEL = 35
+        self.CHUNK_SIZE = 33
+        self.WATER_LEVEL = 70
 
     def _generate_chunk(self, x, y):
         chunk = {}
         temp = random.random()
+        
+        #chunk[(0, 0)] = random.random()
+        #chunk[(0, self.CHUNK_SIZE-1)] = random.random()
+        #chunk[(self.CHUNK_SIZE-1, 0)] = random.random()
+        #chunk[(self.CHUNK_SIZE-1, self.CHUNK_SIZE-1)] = random.random()
         # To generate a world...
-        for i in range(self.CHUNK_SIZE):
-            for j in range(self.CHUNK_SIZE):
-                chunk[(i,j)] = temp
-        self.chunks[(x,y)] = chunk
+        #for i in range(self.CHUNK_SIZE):
+        #    for j in range(self.CHUNK_SIZE):
+        #        chunk[(i,j)] = temp
+        #self.chunks[(x,y)] = chunk
+
+        points = collections.deque([(0, 0, self.CHUNK_SIZE-1), (0, self.CHUNK_SIZE-1, self.CHUNK_SIZE-1), (self.CHUNK_SIZE-1, 0, self.CHUNK_SIZE-1), (self.CHUNK_SIZE-1, self.CHUNK_SIZE-1, self.CHUNK_SIZE-1)])
+        while len(points) > 0:
+            point_x, point_y, strength = points.popleft()
+            if (point_x, point_y) not in chunk:
+                if strength != self.CHUNK_SIZE-1:
+                    chunk[(point_x, point_y)] = self._get_height(point_x, point_y, strength, chunk)
+                else:
+                    chunk[(point_x, point_y)] = random.random()
+                strength = int(strength/2)
+                points.append((max(point_x - strength, 0), max(point_y - strength, 0), strength))
+                points.append((max(point_x - strength, 0), min(point_y + strength, self.CHUNK_SIZE-1), strength))
+                points.append((min(point_x + strength, self.CHUNK_SIZE-1), max(point_y - strength, 0), strength))
+                points.append((min(point_x + strength, self.CHUNK_SIZE-1), min(point_y + strength, self.CHUNK_SIZE-1), strength))
+                points.append((max(point_x - strength, 0), point_y, strength))
+                points.append((min(point_x + strength, self.CHUNK_SIZE-1), point_y, strength))
+                points.append((point_x, max(point_y - strength, 0), strength))
+                points.append((point_x, min(point_y + strength, self.CHUNK_SIZE-1), strength))
+
+        #print((len(chunk), " CHUNK LEN"))
         self.count += 1
+        self.chunks[(x,y)] = chunk
 
     def query(self, x, y):
-        if (x,y) not in self.chunks.keys():
+        if (x,y) not in self.chunks:
             self._generate_chunk(x,y)
             
-        return self.chunks[(x,y)] 
+        return self.chunks[(x,y)]
+
+    def _get_height(self, x, y, s, chunk):
+        points = [(x-s, y-s), (x-s, y+s), (x+s, y-s), (x+s, y+s), (x, y+s), (x, y-s), (x+s, y), (x-s, y)]
+        accumulation = 0
+        amount_accumulated = 0
+        for point in points:
+            if point in chunk:
+                accumulation += chunk[point]
+                amount_accumulated += 1
+        
+        average = accumulation / amount_accumulated
+        return average
