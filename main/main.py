@@ -19,6 +19,8 @@ class MainClass:
         self.world = World()
         self.rendering = Rendering(screen, self.world)
         self.font = pygame.font.SysFont("Comic Sans MS", 30)
+        self.x_vel = 0
+        self.y_vel = 0
 
     def begin_loop(self):
 
@@ -30,6 +32,32 @@ class MainClass:
                     self.rendering.THREAD_POOL.shutdown(wait=False)
                     self.running = False
                     break
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_w:
+                        self.y_vel = -2
+
+                    if event.key == pygame.K_a:
+                        self.x_vel = -2
+
+                    if event.key == pygame.K_s:
+                        self.y_vel = 2
+                        
+                    if event.key == pygame.K_d:
+                        self.x_vel = 2
+
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_w:
+                        self.y_vel = 0
+
+                    if event.key == pygame.K_a:
+                        self.x_vel = 0
+
+                    if event.key == pygame.K_s:
+                        self.y_vel = 0
+                        
+                    if event.key == pygame.K_d:
+                        self.x_vel = 0
 
             #Rendering
             self.screen.fill("white")
@@ -51,8 +79,10 @@ class MainClass:
             #print(str(self.rendering.count) + " " + str(self.world.count) + " \n " + str(len(self.world.chunk_images)))
 
             # Movement
-            self.x -= 0.5
-            self.y -= 0.5
+            self.x += self.x_vel
+            self.y += self.y_vel
+            #self.x -= 0.5
+            #self.y -= 0.5
         pygame.quit()
 
 def main():

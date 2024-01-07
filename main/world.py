@@ -9,7 +9,7 @@ class World:
 
         # Generation settings
         self.CHUNK_SIZE = 33
-        self.WATER_LEVEL = 100
+        self.WATER_LEVEL = 120
         self.VARIABILITY = 0.05
 
     def _generate_chunk(self, x, y):
